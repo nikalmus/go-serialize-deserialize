@@ -1,0 +1,26 @@
+# Compiled Object files, Static and Dynamic libs (Shared Objects)
+*.o
+*.a
+*.so
+
+# Compiled Go packages
+*.exe
+*.test
+*.prof
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Go binary files (go get, go build, go install)
+/bin/
+
+# Go build cache and test cache directories
+/pkg/
+/test/
+
+# Vendor directory
+/vendor/
+
+# IDE-specific directories
+.idea/
+.vscode/
