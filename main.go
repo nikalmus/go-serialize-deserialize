@@ -11,7 +11,7 @@ type Point struct {
 	Y int32
 }
 
-func SerializePoint(p Point) ([]byte, error) {
+func (p *Point) Serialize() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
 	err := binary.Write(buf, binary.LittleEndian, p.X)
@@ -27,39 +27,37 @@ func SerializePoint(p Point) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func DeserializePoint(data []byte) (Point, error) {
+func (p *Point) Deserialize(data []byte) error {
 	buf := bytes.NewReader(data)
-
-	var p Point
 
 	err := binary.Read(buf, binary.LittleEndian, &p.X)
 	if err != nil {
-		return Point{}, err
+		return err
 	}
 
-	
 	err = binary.Read(buf, binary.LittleEndian, &p.Y)
 	if err != nil {
-		return Point{}, err
+		return err
 	}
 
-	return p, nil
+	return nil
 }
 
 func main() {
 	p := Point{0, 1}
 
-	serialized, err := SerializePoint(p)
+	serialized, err := p.Serialize()
 	if err != nil {
 		// Handle error
 	}
 
-	fmt.Printf("Serialized : %v\n", serialized)
+	fmt.Printf("Serialized: %v\n", serialized)
 
-	deserialized, err := DeserializePoint(serialized)
+	deserialized := Point{}
+	err = deserialized.Deserialize(serialized)
 	if err != nil {
 		// Handle error
 	}
 
-	fmt.Printf("Deserialized : %v\n", deserialized)
+	fmt.Printf("Deserialized: %+v\n", deserialized)
 }
