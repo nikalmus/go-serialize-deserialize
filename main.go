@@ -1,38 +1,56 @@
 package main
 
 import (
+	"os"
+	"log"
 	"fmt"
 	"github.com/nikalmus/go-serialize-deserialize/point"
 	"github.com/nikalmus/go-serialize-deserialize/space"
-	//"github.com/dgraph-io/badger/v3"
 )
 
 func main() {
-	// p := point.Point{X: 0, Y: 1}
+	dbPath := "./db/pointstore" 
 
-	// serialized, err := p.Serialize()
-	// if err != nil {
-	// 	// Handle error
-	// }
+	// Create the directory if it doesn't exist
+	err := os.MkdirAll(dbPath, 0755)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// fmt.Printf("Serialized: %v\n", serialized)
+	s, err := space.InitSpace(dbPath)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// deserialized := point.Point{}
-	// err = deserialized.Deserialize(serialized)
-	// if err != nil {
-	// 	// Handle error
-	// }
+	p1 := &point.Point{X: 11, Y: 21}
+	p2 := &point.Point{X: 35, Y: 45}
 
-	// fmt.Printf("Deserialized: %+v\n", deserialized)
-	p1 := &point.Point{X: 1, Y: 2}
-	p2 := &point.Point{X: 3, Y: 4}
+	// Call AddPoint to save the points
+	err = s.AddPoint(p1)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	s := space.InitSpace()
-	s.AddPoint(p1)
-	s.AddPoint(p2)
+	err = s.AddPoint(p2)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	for _, p := range s.Points {
-		fmt.Printf("Point: %+v\n", *p)
+	// Call LoadPoints to retrieve the saved points
+	points, err := s.LoadPoints()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Points in the database:")
+
+	for _, p := range points {
+		fmt.Printf("X: %d, Y: %d\n", p.X, p.Y)
+	}
+
+	err = s.Close()
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 
