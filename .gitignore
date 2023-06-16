@@ -24,3 +24,6 @@
 # IDE-specific directories
 .idea/
 .vscode/
+
+# db data
+/db

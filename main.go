@@ -1,65 +1,56 @@
 package main
 
 import (
-	"bytes"
-	"encoding/binary"
+	"github.com/nikalmus/go-serialize-deserialize/point"
+	"github.com/nikalmus/go-serialize-deserialize/space"
+	"flag"
 	"fmt"
+	"log"
+	"os"
 )
 
-type Point struct {
-	X int32
-	Y int32
-}
-
-func SerializePoint(p Point) ([]byte, error) {
-	buf := new(bytes.Buffer)
-
-	err := binary.Write(buf, binary.LittleEndian, p.X)
-	if err != nil {
-		return nil, err
-	}
-
-	err = binary.Write(buf, binary.LittleEndian, p.Y)
-	if err != nil {
-		return nil, err
-	}
-
-	return buf.Bytes(), nil
-}
-
-func DeserializePoint(data []byte) (Point, error) {
-	buf := bytes.NewReader(data)
-
-	var p Point
-
-	err := binary.Read(buf, binary.LittleEndian, &p.X)
-	if err != nil {
-		return Point{}, err
-	}
-
-	
-	err = binary.Read(buf, binary.LittleEndian, &p.Y)
-	if err != nil {
-		return Point{}, err
-	}
-
-	return p, nil
-}
-
 func main() {
-	p := Point{0, 1}
+	dbPath := "./db/pointstore" 
 
-	serialized, err := SerializePoint(p)
+	s, err := space.InitSpace(dbPath)
 	if err != nil {
-		// Handle error
+		log.Fatal(err)
+	}
+	defer s.Close()
+
+	createCmd := flag.NewFlagSet("create", flag.ExitOnError)
+	loadCmd := flag.NewFlagSet("load", flag.ExitOnError)
+
+	x := createCmd.Int("x", 0, "X coordinate")
+	y := createCmd.Int("y", 0, "Y coordinate")
+
+	if len(os.Args) < 2 {
+		fmt.Println("create or load command is required")
+		os.Exit(1)
 	}
 
-	fmt.Printf("Serialized : %v\n", serialized)
-
-	deserialized, err := DeserializePoint(serialized)
-	if err != nil {
-		// Handle error
+	switch os.Args[1] {
+	case "create":
+		createCmd.Parse(os.Args[2:])
+		p := point.CreatePoint(int32(*x), int32(*y))
+		err := s.AddPoint(p)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("Point created successfully!")
+	case "load":
+		loadCmd.Parse(os.Args[1:])
+		points, err := s.LoadPoints()
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("Points in the database:")
+		for _, p := range points {
+			fmt.Printf("X: %d, Y: %d\n", p.X, p.Y)
+		}
+	default:
+		fmt.Println("Unknown command:", os.Args[1])
+		os.Exit(1)
 	}
-
-	fmt.Printf("Deserialized : %v\n", deserialized)
 }
+
